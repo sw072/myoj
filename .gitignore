@@ -5,4 +5,8 @@
 /tmp_dir/
 !*.h
 !*.c
-!*ini
+!*.ini
+*.cbp
+*.depent
+*.layout
+

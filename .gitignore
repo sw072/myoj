@@ -1,0 +1,8 @@
+/bin/
+/obj/
+/indata/
+/outdata/
+/tmp_dir/
+!*.h
+!*.c
+!*ini

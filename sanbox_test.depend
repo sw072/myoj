@@ -1,0 +1,206 @@
+# depslib dependency file v1.0
+1333971970 source:/home/shiwei/sanbox_test/config/config.c
+	"config.h"
+	"ini_op.h"
+
+1333970567 /home/shiwei/sanbox_test/config/config.h
+	"../common/comm.h"
+
+1333955770 /home/shiwei/sanbox_test/common/comm.h
+
+1333971978 /home/shiwei/sanbox_test/config/ini_op.h
+	<unistd.h>
+	<stdio.h>
+
+1333974363 source:/home/shiwei/sanbox_test/config/ini_op.c
+	"ini_op.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+
+1251655154 source:/home/shiwei/sanbox_test/excuter/java_executer.c
+
+1333967422 source:/home/shiwei/sanbox_test/excuter/nomal_excuter.c
+	"nomal_excuter.h"
+	<sys/fcntl.h>
+
+1333967275 /home/shiwei/sanbox_test/excuter/nomal_excuter.h
+	"../config/config.h"
+	"sandbox/sandbox.h"
+
+1333971300 /home/shiwei/sanbox_test/excuter/sandbox/sandbox.h
+	"../../common/comm.h"
+	"../../config/config.h"
+	<sys/types.h>
+	<sys/resource.h>
+
+1333968348 source:/home/shiwei/sanbox_test/excuter/sandbox/platform.c
+	"platform.h"
+	<assert.h>
+	<fcntl.h>
+	<stdio.h>
+	<string.h>
+	<sys/vfs.h>
+	<sys/types.h>
+	<unistd.h>
+	<sys/ptrace.h>
+	<sys/reg.h>
+	<sys/syscall.h>
+
+1333970966 /home/shiwei/sanbox_test/excuter/sandbox/platform.h
+	<unistd.h>
+	<sys/types.h>
+	<sys/user.h>
+	<sys/times.h>
+	"../../common/comm.h"
+
+1333971690 source:/home/shiwei/sanbox_test/excuter/sandbox/sandbox.c
+	"sandbox.h"
+	"platform.h"
+	"restrict_syscall.h"
+	"../../config/config.h"
+	<string.h>
+	<signal.h>
+	<sys/time.h>
+	<sys/wait.h>
+
+1333971677 /home/shiwei/sanbox_test/excuter/sandbox/restrict_syscall.h
+
+1333971416 source:/home/shiwei/sanbox_test/excuter/normal_excuter.c
+	"normal_excuter.h"
+	<stdio.h>
+	<sys/fcntl.h>
+	<assert.h>
+	<string.h>
+
+1333970358 /home/shiwei/sanbox_test/excuter/normal_excuter.h
+	"../config/config.h"
+	"sandbox/sandbox.h"
+
+1333971152 source:/home/shiwei/sanbox_test/judgerd.c
+	"excuter/normal_excuter.h"
+
+1334037683 source:/home/shiwei/sandbox_test/config/config.c
+	"config.h"
+	"ini_op.h"
+	"../trace/trace.h"
+
+1334053382 /home/shiwei/sandbox_test/config/config.h
+	"../judgerd.h"
+
+1333978842 /home/shiwei/sandbox_test/common/comm.h
+
+1333971978 /home/shiwei/sandbox_test/config/ini_op.h
+	<unistd.h>
+	<stdio.h>
+
+1334037844 source:/home/shiwei/sandbox_test/config/ini_op.c
+	"ini_op.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	"../trace/trace.h"
+
+1251655154 source:/home/shiwei/sandbox_test/excuter/java_executer.c
+
+1334038875 source:/home/shiwei/sandbox_test/excuter/normal_excuter.c
+	"normal_excuter.h"
+	<stdio.h>
+	<sys/fcntl.h>
+	<assert.h>
+	<string.h>
+	"../trace/trace.h"
+
+1333970358 /home/shiwei/sandbox_test/excuter/normal_excuter.h
+	"../config/config.h"
+	"sandbox/sandbox.h"
+
+1334053436 /home/shiwei/sandbox_test/excuter/sandbox/sandbox.h
+	"../../judgerd.h"
+	"../../config/config.h"
+	<sys/types.h>
+	<sys/resource.h>
+
+1333978052 source:/home/shiwei/sandbox_test/excuter/sandbox/platform.c
+	"platform.h"
+	<assert.h>
+	<fcntl.h>
+	<stdio.h>
+	<string.h>
+	<sys/vfs.h>
+	<sys/types.h>
+	<unistd.h>
+	<sys/ptrace.h>
+	<sys/reg.h>
+	<sys/syscall.h>
+
+1334053618 /home/shiwei/sandbox_test/excuter/sandbox/platform.h
+	<unistd.h>
+	<sys/types.h>
+	<sys/user.h>
+	<sys/times.h>
+	"../../judgerd.h"
+
+1334052577 source:/home/shiwei/sandbox_test/excuter/sandbox/sandbox.c
+	"sandbox.h"
+	"platform.h"
+	"restrict_syscall.h"
+	"../../config/config.h"
+	<string.h>
+	<signal.h>
+	<sys/time.h>
+	<sys/wait.h>
+	"../../trace/trace.h"
+	"symbols.h"
+
+1334041785 /home/shiwei/sandbox_test/excuter/sandbox/restrict_syscall.h
+
+1334067704 source:/home/shiwei/sandbox_test/judgerd.c
+	"judgerd.h"
+	"excuter/normal_excuter.h"
+	"trace/trace.h"
+	"judge_queue/judge_queue.h"
+	<pthread.h>
+	<assert.h>
+	"db/db.h"
+
+1334024898 source:/home/shiwei/sandbox_test/trace/trace.c
+	"trace.h"
+	<stdarg.h>
+	<stdio.h>
+	<time.h>
+
+1334024965 /home/shiwei/sandbox_test/trace/trace.h
+	<stdio.h>
+
+1334027845 source:/home/shiwei/sandbox_test/excuter/sandbox/symbols.c
+	"symbols.h"
+
+1334027844 /home/shiwei/sandbox_test/excuter/sandbox/symbols.h
+	"sandbox.h"
+
+1334054653 source:/home/shiwei/sandbox_test/compiler/compiler.c
+
+1334064868 /home/shiwei/sandbox_test/judgerd.h
+	"compiler/compiler.h"
+
+1334054834 /home/shiwei/sandbox_test/compiler/compiler.h
+
+1334067517 source:/home/shiwei/sandbox_test/db/db.c
+	"db.h"
+	"../trace/trace.h"
+	<assert.h>
+
+1334065046 /home/shiwei/sandbox_test/db/db.h
+	"../judgerd.h"
+
+1334067650 source:/home/shiwei/sandbox_test/judge_queue/judge_queue.c
+	"judge_queue.h"
+	"../trace/trace.h"
+	<string.h>
+	<assert.h>
+
+1334066088 /home/shiwei/sandbox_test/judge_queue/judge_queue.h
+	"../judgerd.h"
+	<pthread.h>
+

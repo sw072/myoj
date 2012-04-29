@@ -2,37 +2,57 @@
 #include "../trace/trace.h"
 #include <assert.h>
 
-#define BUFF_MAX 8
+#define sqlstr "select submit.id,problem.pno,cno,scode,ptime,pmem from test.submit \
+    join compiler on compiler.id=submit.scompiler join problem on problem.id=submit.pid \
+    where sresultcode=0 order by id limit 10"
+
+#define BUFF_MAX 32
 static solution_t buff[BUFF_MAX];
 
-int id = 1000;
-
-int db_fetch_solutions(solution_t **pbuff, int *n)
+int db_init(MYSQL ** db, char server[], char db_name[], char db_user[], char db_pwd[])
 {
-    while(rand() % 2 != 0)
+    *db = mysql_init(NULL);
+    if(!mysql_real_connect(*db, server, db_user, db_pwd, db_name, 0, NULL, 0))
     {
-        sleep(2);
+        __TRACE_LN(__TRACE_KEY, "%p;server:%s;db:%s;user:%s;pwd:%s", *db, server, db_name, db_user, db_pwd);
+        __TRACE_LN(__TRACE_KEY, "oops : Database connect error.");
+        return -1;
     }
-    buff[0].run_id = id;
-    buff[0].problem_id = 1000;
-    buff[0].compiler = COMPILER_GCC;
-    buff[0].quota_wallclock = 5000;
-    buff[0].quota_cputime = 1000;
-    buff[0].quota_memory = 32 * 1024 * 1024;
-    buff[0].quota_output = 32 * 1024 * 1024;
-    strcpy(buff[0].src, "#include <stdio.h>\nint main() { printf(\"hello world!\\n\"); return 0; }");
-    id++;
-    buff[1].run_id = id;
-    buff[1].problem_id = 1000;
-    buff[1].compiler = COMPILER_GCC;
-    buff[1].quota_wallclock = 5000;
-    buff[1].quota_cputime = 1000;
-    buff[1].quota_memory = 32 * 1024 * 1024;
-    buff[1].quota_output = 32 * 1024 * 1024;
-    strcpy(buff[1].src, "#include <stdio.h>\nint main() { printf(\"hello world!\\n\"); return 0; }fdsfsdf");
-    id++;
+    return 0;
+}
+
+int db_fetch_solutions(MYSQL *db, solution_t **pbuff, int *n)
+{
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    mysql_query(db, sqlstr);
+    if(!(res = mysql_store_result(db)))
+    {
+        __TRACE_LN(__TRACE_KEY, "oops : mysql_store_result failed.");
+        return -1;
+    }
+    int idx = 0;
+    while(row = mysql_fetch_row(res))
+    {
+        buff[idx].run_id = atoi(row[0]);
+        buff[idx].problem_id = atoi(row[1]);
+        buff[idx].compiler = (compiler_type_t)atoi(row[2]);
+        strcpy(buff[idx].src, row[3]);
+        buff[idx].quota_wallclock = 5000;
+        buff[idx].quota_cputime = atoi(row[4]);
+        buff[idx].quota_memory = atoi(row[5]);
+        buff[idx].quota_output = 32 * 1024 * 1024;
+        idx++;
+    }
+    mysql_free_result(res);
     *pbuff = &buff[0];
-    *n = 2;
-    __TRACE_LN(__TRACE_DBG, "%d", id);
+    *n = idx;
+    __TRACE_LN(__TRACE_DBG, "got %d solutions", idx);
+    return 0;
+}
+
+int db_fini(MYSQL **db)
+{
+    mysql_close(*db);
     return 0;
 }

@@ -10,165 +10,45 @@
 
 int working = 1;
 
-int get_solution(queue_t *q, solution_t *s)
-{
-    if(queue_front_pop(q, s) < 0) return -1;
-    return 0;
-}
-
-void * thread_db_fetch(void * arg)
-{
-    queue_t *q = (queue_t *)arg;
-    assert(q);
-    int n = 0, idx = 0;
-    solution_t *pbuff;
-    while(1)
-    {
-        if(db_fetch_solutions(&pbuff, &n) < 0)
-        {
-            __TRACE_LN(__TRACE_KEY, "oops : db operate failed");
-            break;
-        }
-        for(idx = 0; idx < n; idx++)
-        {
-            queue_enqueue(q, &pbuff[idx]);
-        }
-    }
-    return NULL;
-}
-
-int start_db_fetch(queue_t *q, pthread_t *ptid)
-{
-    pthread_t tid = 0;
-    if(pthread_create(&tid, NULL, thread_db_fetch, (void *)q) < 0)
-    {
-        __TRACE_LN(__TRACE_KEY, "oops : db fetch thread create failed");
-        return -1;
-    }
-    *ptid = tid;
-    return 0;
-}
-
-int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig)
-{
-    if(ps->compiler == COMPILER_GCC || ps->compiler == COMPILER_GPP)
-    {
-        sprintf(pinfo->srcfile_name, "%d.%s", ps->run_id, srcfile_ext[ps->compiler]);
-        config_get_src_abspath(pconfig, pinfo->srcfile_name, pinfo->srcfile_abspath);
-        sprintf(pinfo->exefile_name, "%d", ps->run_id);
-        config_get_exe_abspath(pconfig, pinfo->exefile_name, pinfo->exefile_abspath);
-    }
-    else if(ps->compiler == COMPILER_JAVAC)
-    {
-
-    }
-    else
-    {
-        __TRACE_LN(__TRACE_KEY, "Internal Error : unknow compiler");
-        return -1;
-    }
-    sprintf(pinfo->srcfile_dir_abspath, "%s%s/", pconfig->tmp_dir_path, pconfig->src_dir_name);     /* =.=! */
-    config_get_in_file_abspath(pconfig, ps->problem_id, pinfo->infile_abspath);
-    config_get_tmp_out_file_abspath(pconfig, ps->run_id, pinfo->tmpout_abspath);
-    config_get_out_file_abspath(pconfig, ps->problem_id, pinfo->ansfile_abspath);
-    config_get_compileinfo_file_abspath(pconfig, ps->run_id, pinfo->compileinfo_abspath);
-    return 0;
-}
-
 static compiler_t gcc;
 static compiler_t gpp;
 static compiler_t javac;
 
-int compilers_init(config_t *pconfig)
-{
-    assert(pconfig);
-    gcc.compiler = COMPILER_GCC;
-    strcpy(gcc.compile_cmd_fmt,
-           "gcc %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
-    gpp.compiler = COMPILER_GPP;
-    strcpy(gpp.compile_cmd_fmt, "g++ %s -o %s");
-    javac.compiler = COMPILER_JAVAC;
-    strcpy(javac.compile_cmd_fmt, "...........");
-    gcc.pconfig = gpp.pconfig = javac.pconfig = pconfig;
-    return 0;
-}
-
-int clear_tmp_files(path_info_t *pinfo)
-{
-    int ret = 0;
-    /* remove src file */
-    if(!access(pinfo->srcfile_abspath, 0) &&
-        remove(pinfo->srcfile_abspath) < 0)
-    {
-        __TRACE_LN(__TRACE_KEY, "WARNING : source file remove failed");
-        ret = -1;
-    }
-    if(!access(pinfo->exefile_abspath, 0) &&
-       remove(pinfo->exefile_abspath) < 0)
-    {
-        __TRACE_LN(__TRACE_KEY, "WARNING : exe file remove failed");
-        ret = -1;
-    }
-    if(!access(pinfo->tmpout_abspath, 0) &&
-       remove(pinfo->tmpout_abspath) < 0)
-    {
-        __TRACE_LN(__TRACE_KEY, "WARNING : tmpout file remove failed");
-        ret = -1;
-    }
-    /*
-    if(!access(pinfo->compileinfo_abspath, 0) &&
-       remove(pinfo->compileinfo_abspath) < 0)
-    {
-        __TRACE_LN(__TRACE_KEY, "WARNING : compile info file remove failed");
-        ret = -1;
-    }
-    */
-    return ret;
-}
-
 typedef void sigfunc(int);
 
-sigfunc * _signal(int signo, sigfunc *func)
-{
-    struct sigaction act, oact;
-    act.sa_handler = func;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    act.sa_flags |= SA_RESTART;
-    if (sigaction(signo, &act, &oact) < 0)
-        return(SIG_ERR);
-    return(oact.sa_handler);
-}
-
-static void quit(int sig)
-{
-    working = 0;
-    __TRACE_LN(__TRACE_DBG, "SIGINT");
-}
+int get_solution(queue_t *q, solution_t *s);
+void * thread_db_fetch(void * arg);
+int start_db_fetch(queue_t *q, pthread_t *ptid);
+int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig);
+int compilers_init(config_t *pconfig);
+int clear_tmp_files(path_info_t *pinfo);
+sigfunc * _signal(int signo, sigfunc *func);
+static void quit(int sig);
 
 int main(int argc, char *argv[])
 {
     __TRACE_INIT("judger.log");
+    // config data initial
 	config_t config;
 	if(config_init(&config) < 0)
 	{
 	    __TRACE_LN(__TRACE_KEY, "oops : Load config file failed");
 	    return -1;
 	}
-
+	// compilers initial
     if(compilers_init(&config) < 0)
     {
         __TRACE_LN(__TRACE_KEY, "oops : Compilers init failed");
         return -1;
     }
-
+    // pending queue initial
     queue_t q;
     if(queue_init(&q) < 0)
     {
         __TRACE_LN(__TRACE_KEY, "oops : Queue initial failed");
         return -1;
     }
-
+    // start pending db fetch thread
     pthread_t tid = 0;
     if(start_db_fetch(&q, &tid) < 0)
     {
@@ -275,4 +155,141 @@ next:
     __TRACE_LN(__TRACE_KEY, "Quit. Bye!");
     __TRACE_FINI();
 	return 0;
+}
+
+int get_solution(queue_t *q, solution_t *s)
+{
+    if(queue_front_pop(q, s) < 0) return -1;
+    return 0;
+}
+
+void * thread_db_fetch(void * arg)
+{
+    queue_t *q = (queue_t *)arg;
+    assert(q);
+    MYSQL *ojdb;
+    if(db_init(&ojdb, "localhost", "test", "root", "101452"))
+    {
+        __TRACE_LN(__TRACE_KEY, "oops : db_init failed.");
+        return NULL;
+    }
+    int n = 0, idx = 0;
+    solution_t *pbuff;
+    while(1)
+    {
+        if(db_fetch_solutions(ojdb, &pbuff, &n) < 0)
+        {
+            __TRACE_LN(__TRACE_KEY, "oops : db operate failed");
+            break;
+        }
+        for(idx = 0; idx < n; idx++)
+        {
+            queue_enqueue(q, &pbuff[idx]);
+        }
+    }
+    db_fini(&ojdb);
+    return NULL;
+}
+
+int start_db_fetch(queue_t *q, pthread_t *ptid)
+{
+    pthread_t tid = 0;
+    if(pthread_create(&tid, NULL, thread_db_fetch, (void *)q) < 0)
+    {
+        __TRACE_LN(__TRACE_KEY, "oops : db fetch thread create failed");
+        return -1;
+    }
+    *ptid = tid;
+    return 0;
+}
+
+int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig)
+{
+    if(ps->compiler == COMPILER_GCC || ps->compiler == COMPILER_GPP)
+    {
+        sprintf(pinfo->srcfile_name, "%d.%s", ps->run_id, srcfile_ext[ps->compiler]);
+        config_get_src_abspath(pconfig, pinfo->srcfile_name, pinfo->srcfile_abspath);
+        sprintf(pinfo->exefile_name, "%d", ps->run_id);
+        config_get_exe_abspath(pconfig, pinfo->exefile_name, pinfo->exefile_abspath);
+    }
+    else if(ps->compiler == COMPILER_JAVAC)
+    {
+
+    }
+    else
+    {
+        __TRACE_LN(__TRACE_KEY, "Internal Error : unknow compiler");
+        return -1;
+    }
+    sprintf(pinfo->srcfile_dir_abspath, "%s%s/", pconfig->tmp_dir_path, pconfig->src_dir_name);     /* =.=! */
+    config_get_in_file_abspath(pconfig, ps->problem_id, pinfo->infile_abspath);
+    config_get_tmp_out_file_abspath(pconfig, ps->run_id, pinfo->tmpout_abspath);
+    config_get_out_file_abspath(pconfig, ps->problem_id, pinfo->ansfile_abspath);
+    config_get_compileinfo_file_abspath(pconfig, ps->run_id, pinfo->compileinfo_abspath);
+    return 0;
+}
+
+int compilers_init(config_t *pconfig)
+{
+    assert(pconfig);
+    gcc.compiler = COMPILER_GCC;
+    strcpy(gcc.compile_cmd_fmt,
+           "gcc %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
+    gpp.compiler = COMPILER_GPP;
+    strcpy(gpp.compile_cmd_fmt, "g++ %s -o %s");
+    javac.compiler = COMPILER_JAVAC;
+    strcpy(javac.compile_cmd_fmt, "...........");
+    gcc.pconfig = gpp.pconfig = javac.pconfig = pconfig;
+    return 0;
+}
+
+int clear_tmp_files(path_info_t *pinfo)
+{
+    int ret = 0;
+    /* remove src file */
+    if(!access(pinfo->srcfile_abspath, 0) &&
+        remove(pinfo->srcfile_abspath) < 0)
+    {
+        __TRACE_LN(__TRACE_KEY, "WARNING : source file remove failed");
+        ret = -1;
+    }
+    if(!access(pinfo->exefile_abspath, 0) &&
+       remove(pinfo->exefile_abspath) < 0)
+    {
+        __TRACE_LN(__TRACE_KEY, "WARNING : exe file remove failed");
+        ret = -1;
+    }
+    if(!access(pinfo->tmpout_abspath, 0) &&
+       remove(pinfo->tmpout_abspath) < 0)
+    {
+        __TRACE_LN(__TRACE_KEY, "WARNING : tmpout file remove failed");
+        ret = -1;
+    }
+    /*
+    if(!access(pinfo->compileinfo_abspath, 0) &&
+       remove(pinfo->compileinfo_abspath) < 0)
+    {
+        __TRACE_LN(__TRACE_KEY, "WARNING : compile info file remove failed");
+        ret = -1;
+    }
+    */
+    return ret;
+}
+
+sigfunc * _signal(int signo, sigfunc *func)
+{
+    struct sigaction act, oact;
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    act.sa_flags |= SA_RESTART;
+    if (sigaction(signo, &act, &oact) < 0)
+        return(SIG_ERR);
+    return(oact.sa_handler);
+}
+
+static void quit(int sig)
+{
+    working = 0;
+    __TRACE_LN(__TRACE_DBG, "SIGINT");
 }

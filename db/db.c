@@ -40,7 +40,7 @@ int db_fetch_solutions(MYSQL *db, solution_t **pbuff, int *n)
         strcpy(buff[idx].src, row[3]);
         buff[idx].quota_wallclock = 5000;
         buff[idx].quota_cputime = atoi(row[4]);
-        buff[idx].quota_memory = atoi(row[5]);
+        buff[idx].quota_memory = atoi(row[5]) * 1024;
         buff[idx].quota_output = 32 * 1024 * 1024;
         idx++;
     }

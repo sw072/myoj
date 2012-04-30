@@ -11,8 +11,8 @@
 #define __TRACE_INFO	1
 #define __TRACE_KEY		2
 
-#define __MIN_TRACE_LEVEL		__TRACE_DBG
-//#define __MIN_TRACE_LEVEL		__TRACE_INFO
+//define __MIN_TRACE_LEVEL		__TRACE_DBG
+#define __MIN_TRACE_LEVEL		__TRACE_INFO
 //#define __MIN_TRACE_LEVEL		__TRACE_KEY
 
 #ifdef __TRACE_ALL

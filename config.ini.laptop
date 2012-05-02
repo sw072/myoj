@@ -1,0 +1,14 @@
+tmp_dir_path = /home/shiwei/OnlineJudge/judged/tmp_dir/
+
+src_dir_name = src
+
+exe_dir_name = exe
+
+tmp_out_dir_name = output
+
+compileinfo_dir_name = compileinfo
+
+in_data_dir_path = /home/shiwei/OnlineJudge/judged/indata/
+
+out_data_dir_path = /home/shiwei/OnlineJudge/judged/outdata/
+

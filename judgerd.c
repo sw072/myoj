@@ -1,5 +1,5 @@
 #include "comm.h"
-#include "excuter/normal_excuter.h"
+#include "executer/executer.h"
 #include "trace/trace.h"
 #include "judge_queue/judge_queue.h"
 #include <signal.h>
@@ -10,9 +10,9 @@
 
 int working = 1;
 
-static compiler_t gcc;
-static compiler_t gpp;
-static compiler_t javac;
+compiler_t gcc;
+compiler_t gpp;
+compiler_t javac;
 
 typedef void sigfunc(int);
 
@@ -106,8 +106,7 @@ int main(int argc, char *argv[])
         result_t result = PENDED;
         /* compile */
         int compile_result = 0;
-        compiler_t *pcompiler = (s.compiler == COMPILER_GCC ? &gcc : (s.compiler == COMPILER_GPP ? &gpp : &javac));
-        compile_result = compile(pcompiler, &s, &path_info);
+        compile_result = compile(&s, &path_info);
         if(compile_result == -1)
         {
             __TRACE_LN(__TRACE_KEY, "Internal Error : compiler exception");
@@ -130,8 +129,8 @@ int main(int argc, char *argv[])
         /* excute the target process */
         if(s.compiler == COMPILER_GCC || s.compiler == COMPILER_GPP)
         {
-            /* excute */
-            if(normal_excute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
+            /* execute */
+            if(normal_execute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
                                                             s.quota_memory, s.quota_output, &config, &result) < 0)
             {
                 __TRACE_LN(__TRACE_KEY, "Internal Error : normal excuter has errors");
@@ -141,6 +140,14 @@ int main(int argc, char *argv[])
         }
         else if(s.compiler == COMPILER_JAVAC)
         {
+            /* execute */
+            if(java_execute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
+                                                            s.quota_memory, s.quota_output, &config, &result) < 0)
+            {
+                __TRACE_LN(__TRACE_KEY, "Internal Error : java excuter has errors");
+                result = INTERNAL_ERROR;
+                /* return -1; */
+            }
         }
         if(result != PENDED) goto next;
         /* checker output */
@@ -154,11 +161,13 @@ next:
         *           1) source file; 2) exe file; 3) tmpout file; 4)compile info file
         * if remove() failed, the judger runs continually
         */
+        /*
         if(clear_tmp_files(&path_info) < 0)
         {
             __TRACE_LN(__TRACE_KEY, "WARNING : some tmp file not removed");
         }
-        db_update_result(ojdb, s.run_id, result);
+        */
+        //db_update_result(ojdb, s.run_id, result);
         printf("result : %s\n", result_str[result]);
         __TRACE_LN(__TRACE_KEY, "LOG : Judge End-----------------------Run id %d\tProblem id %d", s.run_id, s.problem_id);
     }
@@ -226,7 +235,10 @@ int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig)
     }
     else if(ps->compiler == COMPILER_JAVAC)
     {
-
+        sprintf(pinfo->srcfile_name, "Main.java", ps->run_id, srcfile_ext[ps->compiler]);
+        config_get_src_abspath(pconfig, pinfo->srcfile_name, pinfo->srcfile_abspath);
+        sprintf(pinfo->exefile_name, "Main.class");
+        config_get_exe_abspath(pconfig, pinfo->exefile_name, pinfo->exefile_abspath);
     }
     else
     {
@@ -248,9 +260,10 @@ int compilers_init(config_t *pconfig)
     strcpy(gcc.compile_cmd_fmt,
            "gcc %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     gpp.compiler = COMPILER_GPP;
-    strcpy(gpp.compile_cmd_fmt, "g++ %s -o %s");
+    strcpy(gcc.compile_cmd_fmt,
+           "g++ %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     javac.compiler = COMPILER_JAVAC;
-    strcpy(javac.compile_cmd_fmt, "...........");
+    strcpy(javac.compile_cmd_fmt, "javac -nowarn %s -d %s");
     gcc.pconfig = gpp.pconfig = javac.pconfig = pconfig;
     return 0;
 }

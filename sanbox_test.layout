@@ -1,63 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="checker/checker.c" open="1" top="0" tabpos="13">
-		<Cursor position="205" topLine="12" />
+	<File name="compiler/compiler.c" open="1" top="1" tabpos="4">
+		<Cursor position="3061" topLine="83" />
 	</File>
-	<File name="checker/checker.h" open="1" top="0" tabpos="12">
-		<Cursor position="67" topLine="0" />
+	<File name="compiler/compiler.h" open="0" top="0" tabpos="0">
+		<Cursor position="59" topLine="0" />
 	</File>
-	<File name="comm.h" open="1" top="0" tabpos="9">
-		<Cursor position="2939" topLine="54" />
+	<File name="executer/java_executer.c" open="1" top="0" tabpos="3">
+		<Cursor position="1536" topLine="51" />
 	</File>
-<<<<<<< HEAD
-	<File name="compiler/compiler.c" open="1" top="1" tabpos="8">
-		<Cursor position="3651" topLine="107" />
-=======
-	<File name="compiler/compiler.c" open="1" top="0" tabpos="8">
-		<Cursor position="4236" topLine="139" />
->>>>>>> a84e2d9e548414bbb5a2167caeb70c6788ddb4d4
+	<File name="executer/normal_excuter.c" open="1" top="0" tabpos="1">
+		<Cursor position="170" topLine="0" />
 	</File>
-	<File name="config/config.c" open="1" top="0" tabpos="14">
-		<Cursor position="3195" topLine="75" />
-	</File>
-	<File name="config/config.h" open="1" top="0" tabpos="3">
-		<Cursor position="559" topLine="0" />
-	</File>
-	<File name="config/ini_op.c" open="0" top="0" tabpos="2">
-		<Cursor position="857" topLine="0" />
-	</File>
-	<File name="db/db.c" open="1" top="1" tabpos="7">
-		<Cursor position="1385" topLine="30" />
-	</File>
-	<File name="db/db.h" open="1" top="0" tabpos="11">
-		<Cursor position="194" topLine="0" />
-	</File>
-	<File name="excuter/normal_excuter.c" open="1" top="0" tabpos="2">
-		<Cursor position="461" topLine="1" />
-	</File>
-	<File name="excuter/sandbox/platform.c" open="1" top="0" tabpos="6">
-		<Cursor position="5224" topLine="151" />
-	</File>
-	<File name="excuter/sandbox/sandbox.c" open="1" top="0" tabpos="4">
-		<Cursor position="3603" topLine="117" />
-	</File>
-	<File name="excuter/sandbox/sandbox.h" open="1" top="0" tabpos="5">
-		<Cursor position="1565" topLine="105" />
-	</File>
-	<File name="excuter/sandbox/symbols.c" open="0" top="0" tabpos="0">
-		<Cursor position="227" topLine="0" />
-	</File>
-	<File name="excuter/sandbox/symbols.h" open="0" top="0" tabpos="0">
-		<Cursor position="156" topLine="0" />
-	</File>
-	<File name="judgerd.c" open="1" top="0" tabpos="1">
-		<Cursor position="1664" topLine="37" />
-	</File>
-	<File name="trace/trace.c" open="0" top="0" tabpos="0">
-		<Cursor position="407" topLine="0" />
-	</File>
-	<File name="trace/trace.h" open="1" top="0" tabpos="10">
-		<Cursor position="522" topLine="0" />
+	<File name="judgerd.c" open="1" top="0" tabpos="2">
+		<Cursor position="3480" topLine="103" />
 	</File>
 </CodeBlocks_layout_file>

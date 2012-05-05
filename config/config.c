@@ -45,7 +45,17 @@ int config_init(config_t *pconfig)
 	}
 	if(!ret && get_profile_string(ini, "compileinfo_dir_name", pconfig->compileinfo_dir_name) < 0)
 	{
-	    __TRACE_LN(__TRACE_KEY, "oops : No section : out_data_dir_path");
+	    __TRACE_LN(__TRACE_KEY, "oops : No section : compileinfo_dir_name");
+	    ret = -1;
+	}
+	if(!ret && get_profile_string(ini, "javalib_dir_path", pconfig->javalib_dir_abspath) < 0)
+	{
+	    __TRACE_LN(__TRACE_KEY, "oops : No section : javalib_dir_path");
+	    ret = -1;
+	}
+	if(!ret && get_profile_string(ini, "javasandbox_path", pconfig->javasandbox_abspath) < 0)
+	{
+	    __TRACE_LN(__TRACE_KEY, "oops : No section : javasandbox_path");
 	    ret = -1;
 	}
 	unload_ini_file(ini);
@@ -58,6 +68,8 @@ int config_init(config_t *pconfig)
 	__TRACE_LN(__TRACE_KEY, "\tcompileinfo_dir_name = %s", pconfig->compileinfo_dir_name);
 	__TRACE_LN(__TRACE_KEY, "\tin_data_dir_path = %s", pconfig->in_data_dir_path);
 	__TRACE_LN(__TRACE_KEY, "\tout_data_dir_path = %s", pconfig->out_data_dir_path);
+	__TRACE_LN(__TRACE_KEY, "\tjavalib_dir_path = %s", pconfig->javalib_dir_abspath);
+	__TRACE_LN(__TRACE_KEY, "\tjavasandbox_path = %s", pconfig->javasandbox_abspath);
 	return ret;
 }
 

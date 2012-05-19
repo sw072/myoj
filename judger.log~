@@ -20781,3 +20781,25 @@ LOG : Judge End-----------------------Run id 5	Problem id 1000
 LOG : Judge Start-----------------------Run id 6	Problem id 1000
 LOG : Judge End-----------------------Run id 6	Problem id 1000
 Quit. Bye!
+Configuration:
+	tmp_dir_path = /home/shiwei/OnlineJudge/judged/tmp_dir/
+	src_dir_name = src
+	exe_dir_name = exe
+	tmp_out_dir_name = output
+	compileinfo_dir_name = compileinfo
+	in_data_dir_path = /home/shiwei/OnlineJudge/judged/indata/
+	out_data_dir_path = /home/shiwei/OnlineJudge/judged/outdata/
+LOG : database fetch thread start working...(Thread 3072650048ld)
+LOG : Judge Start-----------------------Run id 2	Problem id 1000
+LOG : Judge End-----------------------Run id 2	Problem id 1000
+LOG : Judge Start-----------------------Run id 3	Problem id 1000
+LOG : Judge End-----------------------Run id 3	Problem id 1000
+LOG : Judge Start-----------------------Run id 4	Problem id 1000
+LOG : Judge End-----------------------Run id 4	Problem id 1000
+LOG : Judge Start-----------------------Run id 5	Problem id 1000
+LOG : Judge End-----------------------Run id 5	Problem id 1000
+LOG : Judge Start-----------------------Run id 6	Problem id 1000
+LOG : Judge End-----------------------Run id 6	Problem id 1000
+LOG : Judge Start-----------------------Run id 7	Problem id 1000
+LOG : Judge End-----------------------Run id 7	Problem id 1000
+Quit. Bye!

@@ -135,7 +135,6 @@ int sandbox_excute(sandbox_t *psbox)
 			}
 			else if(WIFSIGNALED(wait_status))
 			{
-			    __TRACE_LN(__TRACE_DBG, "WIFSIGNALED");
 				POST_EVENT(e, EVENT_SIGNAL, WTERMSIG(wait_status));
 			}
 			else if(WIFEXITED(wait_status))
@@ -314,7 +313,6 @@ static int _sandbox_excute(task_t *ptask)
 	argv[0] = ptask->exe;
 	argv[1] = NULL;
 	/* ok, let it run! */
-	//__TRACE_LN(__TRACE_DBG, "run...");
 	if(execve(ptask->exe_abspath, argv, NULL) < 0)
 	{
 	    __TRACE_LN(__TRACE_KEY, "Internal Error : execve() failed");

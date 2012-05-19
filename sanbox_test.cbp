@@ -60,26 +60,26 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="db/db.h" />
-		<Unit filename="excuter/java_executer.c">
+		<Unit filename="executer/executer.h" />
+		<Unit filename="executer/java_executer.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="excuter/normal_excuter.c">
+		<Unit filename="executer/normal_excuter.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="excuter/normal_excuter.h" />
-		<Unit filename="excuter/sandbox/platform.c">
+		<Unit filename="executer/sandbox/platform.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="excuter/sandbox/platform.h" />
-		<Unit filename="excuter/sandbox/restrict_syscall.h" />
-		<Unit filename="excuter/sandbox/sandbox.c">
+		<Unit filename="executer/sandbox/platform.h" />
+		<Unit filename="executer/sandbox/restrict_syscall.h" />
+		<Unit filename="executer/sandbox/sandbox.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="excuter/sandbox/sandbox.h" />
-		<Unit filename="excuter/sandbox/symbols.c">
+		<Unit filename="executer/sandbox/sandbox.h" />
+		<Unit filename="executer/sandbox/symbols.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="excuter/sandbox/symbols.h" />
+		<Unit filename="executer/sandbox/symbols.h" />
 		<Unit filename="judge_queue/judge_queue.c">
 			<Option compilerVar="CC" />
 		</Unit>

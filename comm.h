@@ -49,6 +49,8 @@ typedef struct _config
 	char in_data_dir_path[PATH_MAX];				        		/* input data dir */
 	char out_data_dir_path[PATH_MAX];			        		/* output data dir */
 	char compileinfo_dir_name[FILENAME_MAX];    /* compile error */
+    char javalib_dir_abspath[PATH_MAX];
+    char javasandbox_abspath[PATH_MAX];
 }config_t;
 /* all dir_path end with '/' */
 /* src path format : tmp_dir/src_dir_name/{runid.ext} */
@@ -58,7 +60,7 @@ typedef struct _config
 /* stand output data file path format : out_data_dir/{problem_id}/{problem_id} */
 
 #ifndef CMD_MAX
-#define CMD_MAX 1024
+#define CMD_MAX 2048
 #endif
 
 typedef enum _compiler_type

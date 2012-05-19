@@ -9,13 +9,13 @@
 #define BUFF_MAX 32
 static solution_t buff[BUFF_MAX];
 
-int db_init(MYSQL ** db, char server[], char db_name[], char db_user[], char db_pwd[])
+int db_open(MYSQL ** db, char server[], char db_name[], char db_user[], char db_pwd[])
 {
     *db = mysql_init(NULL);
     if(!mysql_real_connect(*db, server, db_user, db_pwd, db_name, 0, NULL, 0))
     {
         __TRACE_LN(__TRACE_KEY, "%p;server:%s;db:%s;user:%s;pwd:%s", *db, server, db_name, db_user, db_pwd);
-        __TRACE_LN(__TRACE_KEY, "oops : Database connect error.");
+        __TRACE_LN(__TRACE_KEY, "oops : Database connect failed.");
         return -1;
     }
     return 0;
@@ -51,7 +51,20 @@ int db_fetch_solutions(MYSQL *db, solution_t **pbuff, int *n)
     return 0;
 }
 
-int db_fini(MYSQL **db)
+int db_update_result(MYSQL *db, int sid, int resultcode)
+{
+    static char update_sql[1024];
+    sprintf(update_sql, "update submit set sresultcode=%d, sresultstring='%s' where id=%d", resultcode, result_str[resultcode], sid);
+    __TRACE_LN(__TRACE_KEY, "%s", update_sql);
+    if(!mysql_query(db, update_sql))
+    {
+        __TRACE_LN(__TRACE_KEY, "update judge result failed.");
+        return -1;
+    }
+    return 0;
+}
+
+int db_close(MYSQL **db)
 {
     mysql_close(*db);
     return 0;

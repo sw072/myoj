@@ -102,7 +102,7 @@ int _run_compiler(compiler_t *pcompiler, char srcfile_dir_abspath[], char srcfil
         dup2(fd, STDERR_FILENO);
         if(execvp(argv[0], argv) < 0)
         {
-            __TRACE_LN(__TRACE_KEY, "oops : execve compiler process failed(%s)", strerror(errno));
+            __TRACE_LN(__TRACE_KEY, "Internal Error : execve compiler process failed(%s)", strerror(errno));
             return -1;
         }
     }
@@ -132,7 +132,7 @@ int _run_compiler(compiler_t *pcompiler, char srcfile_dir_abspath[], char srcfil
     return 0;
 }
 
-int compile(compiler_t *pcompiler, solution_t *ps, path_info_t *pinfo)
+int compile(solution_t *ps, path_info_t *pinfo)
 {
     assert(ps);
     int ret = 0;
@@ -142,25 +142,36 @@ int compile(compiler_t *pcompiler, solution_t *ps, path_info_t *pinfo)
         return -1;
     }
     int compile_result = 0;
+    char exe_dir[PATH_MAX];
     switch(ps->compiler)
     {
     case COMPILER_GCC :
-    case COMPILER_GPP:
-            compile_result = _run_compiler(pcompiler, pinfo->srcfile_dir_abspath, pinfo->srcfile_name,
-                                                                                            pinfo->exefile_abspath, pinfo->compileinfo_abspath);
-            if(compile_result == -1)
-            {
-                __TRACE_LN(__TRACE_KEY, "Internal Error : run compiler failed");
-                return -1;
-            }
-            else if(compile_result == -2)
-            {
-                __TRACE_LN(__TRACE_DBG, "DBG : compile error");
-                return -2;
-            }
-            return 0;
-    case COMPILER_JAVAC:
+        compile_result = _run_compiler(&gcc, pinfo->srcfile_dir_abspath, pinfo->srcfile_name,
+                                                                                    pinfo->exefile_abspath, pinfo->compileinfo_abspath);
         break;
+    case COMPILER_GPP:
+        compile_result = _run_compiler(&gpp, pinfo->srcfile_dir_abspath, pinfo->srcfile_name,
+                                                                                    pinfo->exefile_abspath, pinfo->compileinfo_abspath);
+        break;
+    case COMPILER_JAVAC:
+        strcpy(exe_dir, pinfo->exefile_abspath);
+        exe_dir[strlen(exe_dir) - strlen(pinfo->exefile_name)] = '\0';
+        compile_result = _run_compiler(&javac, pinfo->srcfile_dir_abspath, pinfo->srcfile_name,
+                                                                                    exe_dir, pinfo->compileinfo_abspath);
+        break;
+    default :
+        __TRACE_LN(__TRACE_KEY, "Internal Error : unknow compiler.");
+        return -1;
     }
-    return -1;
+    if(compile_result == -1)
+    {
+        __TRACE_LN(__TRACE_KEY, "Internal Error : run compiler failed");
+        return -1;
+    }
+    else if(compile_result == -2)
+    {
+        __TRACE_LN(__TRACE_DBG, "DBG : compile error");
+        return -2;
+    }
+    return 0;
 }

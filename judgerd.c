@@ -1,5 +1,5 @@
 #include "comm.h"
-#include "excuter/normal_excuter.h"
+#include "executer/executer.h"
 #include "trace/trace.h"
 #include "judge_queue/judge_queue.h"
 #include <signal.h>
@@ -10,20 +10,27 @@
 
 int working = 1;
 
-static compiler_t gcc;
-static compiler_t gpp;
-static compiler_t javac;
+compiler_t gcc;
+compiler_t gpp;
+compiler_t javac;
 
 typedef void sigfunc(int);
 
 int get_solution(queue_t *q, solution_t *s);
 void * thread_db_fetch(void * arg);
-int start_db_fetch(queue_t *q, pthread_t *ptid);
+int start_db_fetch(MYSQL *db, queue_t *q, pthread_t *ptid);
 int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig);
 int compilers_init(config_t *pconfig);
 int clear_tmp_files(path_info_t *pinfo);
 sigfunc * _signal(int signo, sigfunc *func);
 static void quit(int sig);
+
+typedef  struct thread_arg
+{
+    MYSQL * db;
+    queue_t * q;
+}thread_arg_t;
+thread_arg_t arg;
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +57,13 @@ int main(int argc, char *argv[])
     }
     // start pending db fetch thread
     pthread_t tid = 0;
-    if(start_db_fetch(&q, &tid) < 0)
+    MYSQL *ojdb = NULL;
+    if(db_open(&ojdb, "localhost", "test", "root", "101452"))
+    {
+        __TRACE_LN(__TRACE_KEY, "oops : Database connect failed.");
+        return -1;
+    }
+    if(start_db_fetch(ojdb, &q, &tid) < 0)
     {
         __TRACE_LN(__TRACE_KEY, "oops : start_db_fetch() failed");
         return -1;
@@ -93,8 +106,7 @@ int main(int argc, char *argv[])
         result_t result = PENDED;
         /* compile */
         int compile_result = 0;
-        compiler_t *pcompiler = (s.compiler == COMPILER_GCC ? &gcc : (s.compiler == COMPILER_GPP ? &gpp : &javac));
-        compile_result = compile(pcompiler, &s, &path_info);
+        compile_result = compile(&s, &path_info);
         if(compile_result == -1)
         {
             __TRACE_LN(__TRACE_KEY, "Internal Error : compiler exception");
@@ -117,8 +129,8 @@ int main(int argc, char *argv[])
         /* excute the target process */
         if(s.compiler == COMPILER_GCC || s.compiler == COMPILER_GPP)
         {
-            /* excute */
-            if(normal_excute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
+            /* execute */
+            if(normal_execute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
                                                             s.quota_memory, s.quota_output, &config, &result) < 0)
             {
                 __TRACE_LN(__TRACE_KEY, "Internal Error : normal excuter has errors");
@@ -128,6 +140,14 @@ int main(int argc, char *argv[])
         }
         else if(s.compiler == COMPILER_JAVAC)
         {
+            /* execute */
+            if(java_execute(s.run_id, s.problem_id,  &path_info, s.quota_wallclock, s.quota_cputime,
+                                                            s.quota_memory, s.quota_output, &config, &result) < 0)
+            {
+                __TRACE_LN(__TRACE_KEY, "Internal Error : java excuter has errors");
+                result = INTERNAL_ERROR;
+                /* return -1; */
+            }
         }
         if(result != PENDED) goto next;
         /* checker output */
@@ -147,10 +167,12 @@ next:
             __TRACE_LN(__TRACE_KEY, "WARNING : some tmp file not removed");
         }
         */
+        //db_update_result(ojdb, s.run_id, result);
         printf("result : %s\n", result_str[result]);
         __TRACE_LN(__TRACE_KEY, "LOG : Judge End-----------------------Run id %d\tProblem id %d", s.run_id, s.problem_id);
     }
     pthread_cancel(tid);
+    db_close(&ojdb);
     queue_fini(&q);
     __TRACE_LN(__TRACE_KEY, "Quit. Bye!");
     __TRACE_FINI();
@@ -165,36 +187,35 @@ int get_solution(queue_t *q, solution_t *s)
 
 void * thread_db_fetch(void * arg)
 {
-    queue_t *q = (queue_t *)arg;
+    MYSQL *ojdb = ((thread_arg_t *)arg)->db;
+    queue_t *q = ((thread_arg_t *)arg)->q;
+    assert(ojdb);
     assert(q);
-    MYSQL *ojdb;
-    if(db_init(&ojdb, "localhost", "test", "root", "101452"))
-    {
-        __TRACE_LN(__TRACE_KEY, "oops : db_init failed.");
-        return NULL;
-    }
+    __TRACE_LN(__TRACE_DBG, "ojdb:%p, q:%p", ojdb, q);
     int n = 0, idx = 0;
     solution_t *pbuff;
-    while(1)
+    while(working)
     {
         if(db_fetch_solutions(ojdb, &pbuff, &n) < 0)
         {
             __TRACE_LN(__TRACE_KEY, "oops : db operate failed");
             break;
         }
+        if(!n) sleep(1);
         for(idx = 0; idx < n; idx++)
         {
             queue_enqueue(q, &pbuff[idx]);
         }
     }
-    db_fini(&ojdb);
     return NULL;
 }
 
-int start_db_fetch(queue_t *q, pthread_t *ptid)
+int start_db_fetch(MYSQL *db, queue_t *q, pthread_t *ptid)
 {
     pthread_t tid = 0;
-    if(pthread_create(&tid, NULL, thread_db_fetch, (void *)q) < 0)
+    arg.db = db;
+    arg.q = q;
+    if(pthread_create(&tid, NULL, thread_db_fetch, (void *)&arg) < 0)
     {
         __TRACE_LN(__TRACE_KEY, "oops : db fetch thread create failed");
         return -1;
@@ -214,7 +235,10 @@ int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig)
     }
     else if(ps->compiler == COMPILER_JAVAC)
     {
-
+        sprintf(pinfo->srcfile_name, "Main.java", ps->run_id, srcfile_ext[ps->compiler]);
+        config_get_src_abspath(pconfig, pinfo->srcfile_name, pinfo->srcfile_abspath);
+        sprintf(pinfo->exefile_name, "Main.class");
+        config_get_exe_abspath(pconfig, pinfo->exefile_name, pinfo->exefile_abspath);
     }
     else
     {
@@ -236,9 +260,10 @@ int compilers_init(config_t *pconfig)
     strcpy(gcc.compile_cmd_fmt,
            "gcc %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     gpp.compiler = COMPILER_GPP;
-    strcpy(gpp.compile_cmd_fmt, "g++ %s -o %s");
+    strcpy(gcc.compile_cmd_fmt,
+           "g++ %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     javac.compiler = COMPILER_JAVAC;
-    strcpy(javac.compile_cmd_fmt, "...........");
+    strcpy(javac.compile_cmd_fmt, "javac -nowarn %s -d %s");
     gcc.pconfig = gpp.pconfig = javac.pconfig = pconfig;
     return 0;
 }
@@ -265,14 +290,13 @@ int clear_tmp_files(path_info_t *pinfo)
         __TRACE_LN(__TRACE_KEY, "WARNING : tmpout file remove failed");
         ret = -1;
     }
-    /*
     if(!access(pinfo->compileinfo_abspath, 0) &&
        remove(pinfo->compileinfo_abspath) < 0)
     {
         __TRACE_LN(__TRACE_KEY, "WARNING : compile info file remove failed");
         ret = -1;
     }
-    */
+
     return ret;
 }
 

@@ -43,6 +43,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="checker/checker.h" />
+		<Unit filename="comm.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="comm.h" />
 		<Unit filename="compiler/compiler.c">
 			<Option compilerVar="CC" />

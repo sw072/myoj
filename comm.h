@@ -80,9 +80,9 @@ typedef struct _compiler
     char compile_cmd_fmt[CMD_MAX];
     config_t *pconfig;
 } compiler_t;
-
+/*
 static const char *srcfile_ext[]={ "c", "cc", "java" };
-
+*/
 /*
 * Result of the solution
 */
@@ -102,7 +102,7 @@ typedef enum _result
 	INTERNAL_ERROR,
 	RESULT_NUM
 } result_t;
-
+/*
 static const char *result_str[] = {
 	"PENDED",
 	"ACCEPTED",
@@ -117,7 +117,7 @@ static const char *result_str[] = {
 	"ABNORMAL_TERMINATION",
 	"INTERNAL_ERROR"
 };
-
+*/
 typedef  struct _solution
 {
     int run_id;
@@ -130,6 +130,12 @@ typedef  struct _solution
     int quota_output;
 } solution_t;
 
+typedef struct _judge_result
+{
+    result_t res;
+    int time;
+    int memory;
+}judge_result_t;
 
 typedef struct _path_info
 {

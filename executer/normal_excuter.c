@@ -9,7 +9,7 @@
 int normal_execute(int run_id, int problem_id, path_info_t *pinfo,
 								int wallclock/* in ms */, int cputime/* in ms */,
 								int memory/* in byte */, int disksize/* in byte */,
-								config_t *pconfig, result_t *sandbox_result)
+								config_t *pconfig, judge_result_t *sandbox_result)
 {
 	/* initial task */
 	task_t task;
@@ -56,14 +56,14 @@ int normal_execute(int run_id, int problem_id, path_info_t *pinfo,
 	sandbox_init(&sbox, &task);
 	__TRACE_LN(__TRACE_DBG, "DBG : sandbox init done");
 
-	if(sandbox_excute(&sbox) < 0) *sandbox_result = INTERNAL_ERROR;
-	else *sandbox_result = sbox.result;
-	if(sandbox_result != PENDED)
+	if(sandbox_excute(&sbox) < 0) sandbox_result->res = INTERNAL_ERROR;
+	else sandbox_result->res = sbox.result;
+	if(sandbox_result->res == PENDED)
 	{
 	    float t = sbox.stat.ru.ru_utime.tv_sec * 1000 + sbox.stat.ru.ru_utime.tv_usec / 1000.0;
         t += sbox.stat.ru.ru_stime.tv_sec * 1000 + sbox.stat.ru.ru_stime.tv_sec / 1000.0;
-	    __TRACE_LN(__TRACE_DBG, "Time usage : %.2f(ms)", t);
-	    __TRACE_LN(__TRACE_DBG, "Memory usage : %d(B)", sbox.stat.vsize_peak);
+        sandbox_result->time = (int)t;
+        sandbox_result->memory = sbox.stat.vsize_peak;
 	}
 
 	sandbox_fini(&sbox);

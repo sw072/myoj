@@ -10,7 +10,7 @@
 int java_execute(int run_id, int problem_id, path_info_t *pinfo,
 								int wallclock/* in ms */, int cputime/* in ms */,
 								int memory/* in byte */, int disksize/* in byte */,
-								config_t *pconfig, result_t *sandbox_result)
+								config_t *pconfig, judge_result_t *sandbox_result)
 {
 	pid_t wait_result = 0;
 	int status = 0;
@@ -78,20 +78,21 @@ int java_execute(int run_id, int problem_id, path_info_t *pinfo,
         switch(WTERMSIG(status))
         {
             case SIGXCPU:
-                *sandbox_result = TIME_LIMIT_EXCEEDED;
+                sandbox_result->res = TIME_LIMIT_EXCEEDED;
                 break;
             default:
                 __TRACE_LN(__TRACE_INFO,  "Java process was terminated by signal : %d", WTERMSIG(status));
-                *sandbox_result = RUNTIME_ERROR;
+                sandbox_result->res = RUNTIME_ERROR;
         }
     }
     else
     {
-        *sandbox_result = WEXITSTATUS(status);
-        if(*sandbox_result  == 1)
+        int java_sandbox_ret = 0;
+        java_sandbox_ret = WEXITSTATUS(status);
+        if(sandbox_result->res  == 1)
         {
             //子进程返回1，表示出错了
-            *sandbox_result = INTERNAL_ERROR;
+            sandbox_result->res = INTERNAL_ERROR;
         }
         /*
         else
@@ -100,10 +101,10 @@ int java_execute(int run_id, int problem_id, path_info_t *pinfo,
                 this->_result += 1000;
         }
         */
-        if(*sandbox_result  == 0)
+        if(java_sandbox_ret  == 0)
         {
            //子进程返回0，正常结束
-            *sandbox_result  = PENDED;
+            sandbox_result->res  = PENDED;
         }
     }
     return 0;

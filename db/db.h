@@ -8,7 +8,7 @@ int db_open(MYSQL ** db, char server[], char db_name[], char db_user[], char db_
 
 int db_fetch_solutions(MYSQL *db, solution_t **pbuff, int *n);
 
-int db_update_result(MYSQL *db, int sid, int resultcode);
+int db_update_result(MYSQL *db, int sid, judge_result_t *result);
 
 int db_close(MYSQL **db);
 

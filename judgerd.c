@@ -2,6 +2,7 @@
 #include "executer/executer.h"
 #include "trace/trace.h"
 #include "judge_queue/judge_queue.h"
+#include <string.h>
 #include <signal.h>
 #include <pthread.h>
 #include <assert.h>
@@ -13,7 +14,8 @@ int working = 1;
 compiler_t gcc;
 compiler_t gpp;
 compiler_t javac;
-
+extern char *result_str[];
+extern char *srcfile_ext[];
 typedef void sigfunc(int);
 
 int get_solution(queue_t *q, solution_t *s);
@@ -58,7 +60,7 @@ int main(int argc, char *argv[])
     // start pending db fetch thread
     pthread_t tid = 0;
     MYSQL *ojdb = NULL;
-    if(db_open(&ojdb, "localhost", "test", "root", "101452"))
+    if(db_open(&ojdb, "10.3.16.157", "myoj1", "root", "101452"))
     {
         __TRACE_LN(__TRACE_KEY, "oops : Database connect failed.");
         return -1;
@@ -72,7 +74,7 @@ int main(int argc, char *argv[])
 
     solution_t s;
     path_info_t path_info;
-    int internal_error = 0;
+    //int internal_error = 0;
     if(_signal(SIGINT, quit) == SIG_ERR)
     {
         __TRACE_LN(__TRACE_KEY, "oops : set SIGINT handler failed");
@@ -103,20 +105,21 @@ int main(int argc, char *argv[])
         __TRACE_LN(__TRACE_DBG, "DBG : tmpout file abspath : %s", path_info.tmpout_abspath);
         __TRACE_LN(__TRACE_DBG, "DBG : standout file abspath : %s", path_info.ansfile_abspath);
 
-        result_t result = PENDED;
+        //result_t result = PENDED;
         /* compile */
         int compile_result = 0;
+        judge_result_t result = { PENDED, -1, -1};
         compile_result = compile(&s, &path_info);
         if(compile_result == -1)
         {
             __TRACE_LN(__TRACE_KEY, "Internal Error : compiler exception");
-            result = INTERNAL_ERROR;
+            result.res = INTERNAL_ERROR;
             goto next;
         }
         else if(compile_result == -2)
         {
             __TRACE_LN(__TRACE_DBG, "DBG : Compile error");
-            result = COMPILE_ERROR;
+            result.res = COMPILE_ERROR;
             char line[4096];
             FILE *fp = fopen(path_info.compileinfo_abspath, "r");
             while(fgets(line, 4096, fp))
@@ -134,7 +137,7 @@ int main(int argc, char *argv[])
                                                             s.quota_memory, s.quota_output, &config, &result) < 0)
             {
                 __TRACE_LN(__TRACE_KEY, "Internal Error : normal excuter has errors");
-                result = INTERNAL_ERROR;
+                result.res = INTERNAL_ERROR;
                 /* return -1; */
             }
         }
@@ -145,30 +148,30 @@ int main(int argc, char *argv[])
                                                             s.quota_memory, s.quota_output, &config, &result) < 0)
             {
                 __TRACE_LN(__TRACE_KEY, "Internal Error : java excuter has errors");
-                result = INTERNAL_ERROR;
+                result.res = INTERNAL_ERROR;
                 /* return -1; */
             }
         }
-        if(result != PENDED) goto next;
+        if(result.res != PENDED) goto next;
         /* checker output */
         if(check(path_info.tmpout_abspath, path_info.ansfile_abspath, &result) < 0)
         {
             __TRACE_LN(__TRACE_KEY, "Internal Error : check output failed");
-            result = INTERNAL_ERROR;
+            result.res = INTERNAL_ERROR;
         }
 next:
         /* clear tmp files
         *           1) source file; 2) exe file; 3) tmpout file; 4)compile info file
         * if remove() failed, the judger runs continually
         */
-        /*
+
         if(clear_tmp_files(&path_info) < 0)
         {
             __TRACE_LN(__TRACE_KEY, "WARNING : some tmp file not removed");
         }
-        */
-        //db_update_result(ojdb, s.run_id, result);
-        printf("result : %s\n", result_str[result]);
+
+        db_update_result(ojdb, s.run_id, &result);
+        __TRACE_LN(__TRACE_KEY, "LOG : Judge Result : %s", result_str[result.res]);
         __TRACE_LN(__TRACE_KEY, "LOG : Judge End-----------------------Run id %d\tProblem id %d", s.run_id, s.problem_id);
     }
     pthread_cancel(tid);
@@ -235,7 +238,7 @@ int set_path_info(path_info_t *pinfo, solution_t *ps, config_t *pconfig)
     }
     else if(ps->compiler == COMPILER_JAVAC)
     {
-        sprintf(pinfo->srcfile_name, "Main.java", ps->run_id, srcfile_ext[ps->compiler]);
+        sprintf(pinfo->srcfile_name, "Main.java");
         config_get_src_abspath(pconfig, pinfo->srcfile_name, pinfo->srcfile_abspath);
         sprintf(pinfo->exefile_name, "Main.class");
         config_get_exe_abspath(pconfig, pinfo->exefile_name, pinfo->exefile_abspath);
@@ -260,7 +263,7 @@ int compilers_init(config_t *pconfig)
     strcpy(gcc.compile_cmd_fmt,
            "gcc %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     gpp.compiler = COMPILER_GPP;
-    strcpy(gcc.compile_cmd_fmt,
+    strcpy(gpp.compile_cmd_fmt,
            "g++ %s -lm -W -Wunused -Wfloat-equal -Wformat -Wparentheses -Wswitch -Wsequence-point -O2 -static -o %s");
     javac.compiler = COMPILER_JAVAC;
     strcpy(javac.compile_cmd_fmt, "javac -nowarn %s -d %s");

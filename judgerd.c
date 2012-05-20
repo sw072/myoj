@@ -195,20 +195,25 @@ void * thread_db_fetch(void * arg)
     assert(ojdb);
     assert(q);
     __TRACE_LN(__TRACE_DBG, "ojdb:%p, q:%p", ojdb, q);
-    int n = 0, idx = 0;
+    int n = 0, idx = 0, from_id = 0;
     solution_t *pbuff;
     while(working)
     {
-        if(db_fetch_solutions(ojdb, &pbuff, &n) < 0)
+        if(db_fetch_solutions(ojdb, from_id, &pbuff, &n) < 0)
         {
             __TRACE_LN(__TRACE_KEY, "oops : db operate failed");
             break;
         }
-        if(!n) sleep(1);
+        if(!n)
+        {
+            sleep(1);
+            continue;
+        }
         for(idx = 0; idx < n; idx++)
         {
             queue_enqueue(q, &pbuff[idx]);
         }
+        from_id = pbuff[n - 1].run_id;
     }
     return NULL;
 }

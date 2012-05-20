@@ -2,7 +2,7 @@
 #include "../trace/trace.h"
 #include <assert.h>
 
-#define sqlstr "select web_submit.id,web_problem.no,web_compiler.sequence,code,timelmt,memlmt from web_submit join web_compiler on web_compiler.id=web_submit.compiler_id join web_problem on web_problem.id=problem_id where resultcode=0 order by web_submit.id limit 10"
+#define sqlstrfmt "select web_submit.id,web_problem.no,web_compiler.sequence,code,timelmt,memlmt from web_submit join web_compiler on web_compiler.id=web_submit.compiler_id join web_problem on web_problem.id=problem_id where resultcode=0 and web_submit.id>%d order by web_submit.id limit 10"
 
 #define BUFF_MAX 32
 
@@ -21,10 +21,12 @@ int db_open(MYSQL ** db, char server[], char db_name[], char db_user[], char db_
     return 0;
 }
 
-int db_fetch_solutions(MYSQL *db, solution_t **pbuff, int *n)
+int db_fetch_solutions(MYSQL *db, int from_id, solution_t **pbuff, int *n)
 {
     MYSQL_RES *res;
     MYSQL_ROW row;
+    char sqlstr[512];
+    sprintf(sqlstr, sqlstrfmt, from_id);
     mysql_query(db, sqlstr);
     if(!(res = mysql_store_result(db)))
     {
@@ -55,8 +57,8 @@ int db_update_result(MYSQL *db, int sid, judge_result_t *result)
 {
     static char update_sql[1024];
     sprintf(update_sql, "update web_submit set resultcode=%d, resultstring='%s', runtime=%d, runmem=%d where id=%d", result->res, result_str[result->res], result->time, result->memory, sid);
-    __TRACE_LN(__TRACE_KEY, "%s", update_sql);
-    if(!mysql_query(db, update_sql))
+    __TRACE_LN(__TRACE_DBG, "%s", update_sql);
+    if(mysql_query(db, update_sql))
     {
         __TRACE_LN(__TRACE_KEY, "update judge result failed.");
         return -1;

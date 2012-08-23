@@ -27,21 +27,21 @@ int normal_excute(int run_id, int problem_id, path_info_t *pinfo,
 	if((ifd = open(pinfo->infile_abspath, O_RDONLY)) < 0)
 	{
         __TRACE_LN(__TRACE_KEY, "Internal Error : Input data file(%s) open failed", pinfo->infile_abspath);
-		return -1;
+	    return -1;
 	}
 	if((ofd = open(pinfo->tmpout_abspath, O_WRONLY | O_CREAT | O_TRUNC,
                 S_IRUSR | S_IWRITE | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) < 0)
 	{
 	    close(ifd);
         __TRACE_LN(__TRACE_KEY, "Internal Error : Tmp output data file(%s) open failed", pinfo->tmpout_abspath);
-		return -1;
+	    return -1;
 	}
 	if((efd = open("/dev/null", O_WRONLY)) < 0)
 	{
 	    close(ifd);
 	    close(ofd);
         __TRACE_LN(__TRACE_KEY, "Internal Error : Error output file open failed");
-		return -1;
+	    return -1;
 	}
 	task.ifd = ifd;
 	task.ofd = ofd;
